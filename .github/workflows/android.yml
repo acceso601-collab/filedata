@@ -10,6 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -27,13 +28,14 @@ jobs:
           # Install Gradle as fallback
           sudo apt-get install -y gradle
 
-      - name: Grant execute for gradlew if present
+      - name: Grant execute permission to Gradle wrapper
         run: |
           if [ -f ./gradlew ]; then chmod +x ./gradlew; fi
 
-      - name: Build APK (use wrapper if available, otherwise system gradle)
+      - name: Build Debug APK (inside app module)
         run: |
-          if [ -f ./gradlew ]; then ./gradlew assembleDebug; else gradle assembleDebug; fi
+          cd app
+          if [ -f ../gradlew ]; then ../gradlew assembleDebug; else gradle assembleDebug; fi
         env:
           JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}
 
