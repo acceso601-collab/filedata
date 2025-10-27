@@ -1,0 +1,44 @@
+name: Android CI - Build Debug APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Install Android SDK tools (minimal)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget unzip
+          # Install Gradle as fallback
+          sudo apt-get install -y gradle
+
+      - name: Grant execute for gradlew if present
+        run: |
+          if [ -f ./gradlew ]; then chmod +x ./gradlew; fi
+
+      - name: Build APK (use wrapper if available, otherwise system gradle)
+        run: |
+          if [ -f ./gradlew ]; then ./gradlew assembleDebug; else gradle assembleDebug; fi
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
